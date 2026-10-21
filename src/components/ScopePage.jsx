@@ -73,9 +73,13 @@ export function ScopeBanner({ onExplore }) {
 // Public files use fixed names so replacing a demo requires no source changes.
 function AddonMedia({ module, onPreview }) {
   const [failed, setFailed] = useState(false);
+  const [started, setStarted] = useState(false);
   const poster = `${import.meta.env.BASE_URL}addon-previews/${module.id}.png`;
-  if (failed) {
+  if (!started || failed) {
     const image = <img src={poster} alt={module.alt} loading="lazy" />;
+    if (!failed) {
+      return <button type="button" className="scope-photo-fallback" onClick={() => setStarted(true)} aria-label={`Play ${module.title} demo video`}>{image}</button>;
+    }
     return onPreview
       ? <button className="scope-photo-fallback" onClick={onPreview} aria-label={`View ${module.title} concept preview`}>{image}</button>
       : image;
@@ -84,6 +88,7 @@ function AddonMedia({ module, onPreview }) {
     className="scope-demo-video"
     src={`${import.meta.env.BASE_URL}addon-videos/${module.id}.mp4`}
     poster={poster}
+    autoPlay
     controls
     playsInline
     preload="metadata"
