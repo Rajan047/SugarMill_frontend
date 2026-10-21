@@ -1,0 +1,12 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const index=readFileSync(resolve(root,'dist/index.html'),'utf8');
+const jsPath=index.match(/src="([^"]+\.js)"/)[1];
+const cssPath=index.match(/href="([^"]+\.css)"/)[1];
+let js=readFileSync(resolve(root,'dist',jsPath.slice(1)),'utf8').replaceAll('/addon-previews/','./public/addon-previews/').replaceAll('/addon-videos/','./public/addon-videos/');
+let css=readFileSync(resolve(root,'dist',cssPath.slice(1)),'utf8').replace(/url\(["']?(\/fonts\/[^)'" ]+)["']?\)/g,(_,path)=>`url(data:font/woff2;base64,${readFileSync(resolve(root,'public',path.slice(1))).toString('base64')})`);
+const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sugar Mill · Sample Dashboard Preview</title><style>${css.replaceAll('</style','<\\/style')}</style></head><body><div id="root"></div><script>window.__SUGARMILL_PREVIEW__=true;</script><script type="module">${js.replaceAll('</script','<\\/script')}</script></body></html>`;
+writeFileSync(resolve(root,'OPEN_DASHBOARD_PREVIEW.html'),html);
+console.log('Created OPEN_DASHBOARD_PREVIEW.html with embedded application and fonts.');
